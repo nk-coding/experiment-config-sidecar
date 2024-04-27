@@ -116,11 +116,13 @@ namespace ExperimentConfigSidecar.Services
             Delay = 0,
         };
 
-        private long artificialMemoryLeak = 0;
+        private long artificialMemoryUsage = 0;
 
         private List<CPUUsage> artificialCPUUsage = [];
 
         private readonly Random random = new();
+
+        private readonly MemoryUsageService memoryUsageService = new();
 
         public Dictionary<string, JsonElement> UpdateConfig(Dictionary<string, JsonElement> config)
         {
@@ -128,15 +130,16 @@ namespace ExperimentConfigSidecar.Services
             UpdateServiceInvocationDeterioration(config);
             UpdateArtificialMemoryUsage(config);
             UpdateArtificialCPUUsage(config);
-            return config.Where(pair => configPropertyKeys.Contains(pair.Key)).ToDictionary(pair => pair.Key, pair => pair.Value);
+            return config.Where(pair => !configPropertyKeys.Contains(pair.Key)).ToDictionary(pair => pair.Key, pair => pair.Value);
         }
 
         private void UpdateArtificialMemoryUsage(Dictionary<string, JsonElement> config)
         {
             if (config.TryGetValue(MemoryUsageKey, out JsonElement value))
             {
-                artificialMemoryLeak = value.TryGetInt64(out var leak) ? leak : 0;
+                artificialMemoryUsage = value.TryGetInt64(out var leak) ? leak : 0;
             }
+            memoryUsageService.UpdateMemoryUsage(artificialMemoryUsage);
         }
 
         private void UpdateArtificialCPUUsage(Dictionary<string, JsonElement> config)

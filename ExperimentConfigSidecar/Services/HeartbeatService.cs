@@ -25,7 +25,7 @@ namespace ExperimentConfigSidecar.Services
                 }
                 catch (Exception e)
                 {
-                    logger.LogError(e, "Failed to send heartbeat");
+                    //logger.LogError(e, "Failed to send heartbeat");
                 }
             }
         }

@@ -49,10 +49,21 @@ app.MapPost("/_ecs/variables-event", async context =>
     context.Response.StatusCode = 200;
 });
 
-app.MapGet("/_ecs/defined-variables", async context => {
-    var responseMessage = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, $"{appUrl}/ecs/defined-variables"));
-    var config = await responseMessage.Content.ReadFromJsonAsync<object>();
-    logger.LogInformation($"Received config properties: {config}");
+app.MapGet("/_ecs/defined-variables", async () => {
+    Dictionary<string, VariableDefinition> config;
+    try
+    {
+        var responseMessage = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, $"{appUrl}/ecs/defined-variables"));
+        config = await responseMessage.Content.ReadFromJsonAsync<Dictionary<string, VariableDefinition>>();
+        logger.LogInformation($"Received config properties: {config}");
+    }
+    catch (Exception e)
+    {
+        config = [];
+        logger.LogError(e, "Failed to get defined variables from service");
+    }
+    configService.AddVariableDefinitions(config);
+    return config;
 });
 
 app.MapPost("/_ecs/pubsub/{**path}", async context => {

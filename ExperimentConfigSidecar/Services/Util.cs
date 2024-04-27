@@ -36,5 +36,15 @@ namespace ExperimentConfigSidecar.Models
             }
             return null;
         }
+        
+        public static bool IsNull(this JsonElement element)
+        {
+            return element.ValueKind == JsonValueKind.Null;
+        }
+
+        public static JsonElement AsJsonElement(this string json)
+        {
+            return JsonDocument.Parse(json).RootElement;
+        }
     }
 }

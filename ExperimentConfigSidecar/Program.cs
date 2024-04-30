@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Dapr;
 using ExperimentConfigSidecar.Models;
 using ExperimentConfigSidecar.Services;
 
@@ -16,7 +17,7 @@ var serviceName = app.Configuration["SERVICE_NAME"] ?? "missing-service-name";
 var heartbeatInterval = int.Parse(app.Configuration["HEARTBEAT_INTERVAL"] ?? "1000");
 
 var appUrl = $"http://localhost:{appPort}";
-var replikaId = Guid.NewGuid();
+var replicaId = Guid.NewGuid();
 const string pubsubName = "experiment-config-pubsub";
 
 app.MapGet("/dapr/subscribe", async () =>
@@ -39,12 +40,16 @@ app.MapGet("/dapr/subscribe", async () =>
 
 app.MapPost("/_ecs/variables-event", async context =>
 {
-    var config = await context.Request.ReadFromJsonAsync<Dictionary<string, JsonElement>>();
-    var remainingConfig = configService.UpdateConfig(config);
-    if (remainingConfig.Count > 0)
+    var cloudEvent = await context.Request.ReadFromJsonAsync<CloudEvent<List<ConfigurationEvent>>>();
+    var config = cloudEvent.Data.Where(config => Guid.Parse(config.ReplicaId) == replicaId).FirstOrDefault();
+    if (config != null)
     {
-        var responseMessage = await httpClient.PostAsJsonAsync($"{appUrl}/ecs/variables", remainingConfig);
-        responseMessage.EnsureSuccessStatusCode();
+        var remainingConfig = configService.UpdateConfig(config.Configurations);
+        if (remainingConfig.Count > 0)
+        {
+            var responseMessage = await httpClient.PostAsJsonAsync($"{appUrl}/ecs/variables", remainingConfig);
+            responseMessage.EnsureSuccessStatusCode();
+        }
     }
     context.Response.StatusCode = 200;
 });
@@ -113,6 +118,6 @@ logger.LogInformation($"Waiting for application on port {appPort}");
 new StartupService().WaitForStartup(appPort).Wait();
 logger.LogInformation($"Application is running on port {appPort}");
 
-new HeartbeatService(heartbeatInterval, pubsubName, replikaId, serviceName, logger).StartAsync();
+new HeartbeatService(heartbeatInterval, pubsubName, replicaId, serviceName, logger).StartAsync();
 
 app.Run();

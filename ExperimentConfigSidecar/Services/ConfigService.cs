@@ -124,6 +124,8 @@ namespace ExperimentConfigSidecar.Services
 
         private readonly MemoryUsageService memoryUsageService = new();
 
+        private readonly CPUUsageService cpuUsageService = new();
+
         public Dictionary<string, JsonElement> UpdateConfig(Dictionary<string, JsonElement> config)
         {
             UpdatePubsubDeterioration(config);
@@ -159,6 +161,7 @@ namespace ExperimentConfigSidecar.Services
                     }
                 }
             }
+            cpuUsageService.UpdateCPUUsage(artificialCPUUsage);
         }
 
         private void UpdateServiceInvocationDeterioration(Dictionary<string, JsonElement> config)

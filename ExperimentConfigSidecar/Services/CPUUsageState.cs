@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace ExperimentConfigSidecar.Models
+namespace ExperimentConfigSidecar.Services
 {
     public class CPUUsageState {
         private volatile int usageDuration;

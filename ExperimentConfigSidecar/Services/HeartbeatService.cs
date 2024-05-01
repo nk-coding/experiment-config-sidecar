@@ -1,32 +1,40 @@
 using Dapr.Client;
 using ExperimentConfigSidecar.Models;
 
-namespace ExperimentConfigSidecar.Services
+namespace ExperimentConfigSidecar.Services;
+
+/// <summary>
+/// Service to send heartbeats to the experiment configuration sidecar.
+/// </summary>
+/// <param name="heartbeatInterval">The interval in milliseconds between heartbeats</param>
+/// <param name="pubsubName">The name of the pubsub component</param>
+/// <param name="instanceId">The unique identifier of the instance</param>
+/// <param name="serviceName">The name of the service</param>
+/// <param name="logger">The logger</param>
+public class HeartbeatService(int heartbeatInterval, string pubsubName, Guid instanceId, string serviceName, ILogger logger)
 {
-    public class HeartbeatService(int heartbeatInterval, string pubsubName, Guid instanceId, string serviceName, ILogger logger)
+
+    /// <summary>
+    /// The Dapr client to use for publishing events.
+    /// </summary>
+    private readonly DaprClient daprClient = new DaprClientBuilder().Build();
+
+    /// <summary>
+    /// Starts sending heartbeats.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    public async Task StartAsync()
     {
-        private readonly int heartbeatInterval = heartbeatInterval;
-
-        private readonly Guid instanceId = instanceId;
-
-        private readonly string serviceName = serviceName;
-
-        private readonly ILogger logger = logger;
-
-        private readonly DaprClient daprClient = new DaprClientBuilder().Build();
-
-        public async Task StartAsync()
+        while (true)
         {
-            while (true)
+            try
             {
-                try {
-                    await Task.Delay(heartbeatInterval);
-                    await daprClient.PublishEventAsync(pubsubName, "heartbeat", new HeartbeatEvent(instanceId, serviceName));
-                }
-                catch (Exception e)
-                {
-                    //logger.LogError(e, "Failed to send heartbeat");
-                }
+                await Task.Delay(heartbeatInterval);
+                await daprClient.PublishEventAsync(pubsubName, "heartbeat", new HeartbeatEvent(instanceId, serviceName));
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Failed to send heartbeat");
             }
         }
     }

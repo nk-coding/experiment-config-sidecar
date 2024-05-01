@@ -1,19 +1,58 @@
-namespace ExperimentConfigSidecar.Models
-{
-    public class SubscriptionSpec
-    {
-        public string Topic { get; set; }
-        public string Pubsubname { get; set; }
-        public Dictionary<string, string> Metadata { get; set; }
-        public string Route { get; set; }
-        public BulkSubscribe BulkSubscribe { get; set; }
-        public string? DeadLetterTopic { get; set; }
-    }
+namespace ExperimentConfigSidecar.Models;
 
-    public class BulkSubscribe
-    {
-        public bool Enabled { get; set; }
-        public int? MaxMessagesCount { get; set; }
-        public int? MaxAwaitDurationMs { get; set; }
-    }
+/// <summary>
+/// Dapr subscription configuration.
+/// </summary>
+public class SubscriptionSpec
+{
+    /// <summary>
+    /// The topic to subscribe to.
+    /// </summary>
+    public string Topic { get; set; }
+
+    /// <summary>
+    /// The pubsub name.
+    /// </summary>
+    public string Pubsubname { get; set; }
+
+    /// <summary>
+    /// The metadata.
+    /// </summary>
+    public Dictionary<string, string> Metadata { get; set; }
+
+    /// <summary>
+    /// The route.
+    /// </summary>
+    public string Route { get; set; }
+
+    /// <summary>
+    /// Bulk subscription configuration.
+    /// </summary>
+    public BulkSubscribe BulkSubscribe { get; set; }
+
+    /// <summary>
+    /// The max number of retries.
+    /// </summary>
+    public string? DeadLetterTopic { get; set; }
+}
+
+/// <summary>
+/// Dapr bulk subscription configuration.
+/// </summary>
+public class BulkSubscribe
+{
+    /// <summary>
+    /// The bulk subscription configuration.
+    /// </summary>
+    public bool Enabled { get; set; }
+
+    /// <summary>
+    /// The max number of messages to process.
+    /// </summary>
+    public int? MaxMessagesCount { get; set; }
+
+    /// <summary>
+    /// The max duration to wait for messages.
+    /// </summary>
+    public int? MaxAwaitDurationMs { get; set; }
 }
